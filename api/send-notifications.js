@@ -71,6 +71,7 @@ export default async function handler(req, res) {
         await webpush.sendNotification(subscription, payload);
         sent++;
       } catch (err) {
+        console.error('PUSH_ERROR:', err?.statusCode, err?.message, JSON.stringify(err?.body));
         errors++;
         if (err.statusCode === 410) await redis.del(key);
       }
