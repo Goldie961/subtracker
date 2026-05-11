@@ -7,6 +7,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const [defaultCurrency, setDefaultCurrency] = useState('RON');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -70,6 +71,25 @@ export default function Settings() {
       setNotifStatus('granted');
     } else if (permission === 'denied') {
       setNotifStatus('denied');
+    }
+  };
+
+  const handleSyncSubscriptions = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      if (sub) {
+        await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: sub, subscriptions: getSubscriptions() })
+        });
+        setSyncMsg('✓ Sincronizat!');
+        setTimeout(() => setSyncMsg(''), 3000);
+      }
+    } catch {
+      setSyncMsg('Eroare la sincronizare');
+      setTimeout(() => setSyncMsg(''), 3000);
     }
   };
 
@@ -217,14 +237,40 @@ export default function Settings() {
         <div className="settings-section">
           <h2>Notificări</h2>
           {notifStatus === 'granted' && (
-            <p style={{
-              color: '#3fb950',
-              fontWeight: 600,
-              fontSize: 14,
-              margin: 0
-            }}>
-              ✓ Notificările sunt active
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <p style={{
+                color: '#3fb950',
+                fontWeight: 600,
+                fontSize: 14,
+                margin: 0
+              }}>
+                ✓ Notificările sunt active
+              </p>
+              <button
+                onClick={handleSyncSubscriptions}
+                style={{
+                  background: 'rgba(88,166,255,0.1)',
+                  border: '1px solid rgba(88,166,255,0.3)',
+                  color: '#58a6ff',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                🔄 Sincronizează
+              </button>
+              {syncMsg && (
+                <span style={{
+                  fontSize: 12,
+                  color: syncMsg.startsWith('✓') ? '#3fb950' : '#f85149',
+                  fontWeight: 500
+                }}>
+                  {syncMsg}
+                </span>
+              )}
+            </div>
           )}
           {notifStatus === 'denied' && (
             <p style={{
