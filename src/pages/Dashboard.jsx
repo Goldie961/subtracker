@@ -351,14 +351,24 @@ export default function Dashboard() {
       <div className="bottom-bar">
         {showInstall && (
           <button onClick={handleInstall} style={{
-            width: '100%', padding: '14px',
-            background: 'rgba(0,200,150,0.1)',
-            border: '1px solid #00c896',
-            borderRadius: 12, color: '#00c896',
-            fontWeight: 600, cursor: 'pointer',
-            marginBottom: 12, fontSize: 15
+            width: '100%',
+            padding: '10px 14px',
+            background: 'transparent',
+            border: '1px solid rgba(0,200,150,0.4)',
+            borderRadius: 10,
+            color: '#00c896',
+            fontWeight: 500,
+            fontSize: 13,
+            cursor: 'pointer',
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            letterSpacing: 0.2
           }}>
-            📲 Instalează aplicația
+            <span style={{ fontSize: 15 }}>📲</span>
+            Instalează aplicația
           </button>
         )}
         <button
