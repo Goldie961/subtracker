@@ -25,6 +25,8 @@ export default function Dashboard() {
     online: true,
     fizic: true,
   });
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
   const navigate = useNavigate();
 
   const loadData = () => {
@@ -33,6 +35,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleDismissStrip = (e, subId) => {
@@ -44,6 +56,13 @@ export default function Dashboard() {
 
   const toggleCategory = (cat) => {
     setOpenCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstall(false);
   };
 
   const activeSubs = subscriptions.filter(sub => sub.status !== 'cancelled');
@@ -330,6 +349,18 @@ export default function Dashboard() {
       </div>
 
       <div className="bottom-bar">
+        {showInstall && (
+          <button onClick={handleInstall} style={{
+            width: '100%', padding: '14px',
+            background: 'rgba(0,200,150,0.1)',
+            border: '1px solid #00c896',
+            borderRadius: 12, color: '#00c896',
+            fontWeight: 600, cursor: 'pointer',
+            marginBottom: 12, fontSize: 15
+          }}>
+            📲 Instalează aplicația
+          </button>
+        )}
         <button
           className="btn-primary bottom-add-btn"
           id="btn-add-subscription"
