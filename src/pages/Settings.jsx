@@ -7,15 +7,43 @@ export default function Settings() {
   const navigate = useNavigate();
   const [defaultCurrency, setDefaultCurrency] = useState('RON');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [showIOSSteps, setShowIOSSteps] = useState(false);
 
   useEffect(() => {
     const savedCurrency = localStorage.getItem('defaultCurrency') || 'RON';
     setDefaultCurrency(savedCurrency);
   }, []);
 
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const ios = /iphone|ipad|ipod/i.test(ua);
+    const android = /android/i.test(ua);
+    setIsIOS(ios);
+    setIsAndroid(android);
+
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
   const handleCurrencyChange = (currency) => {
     setDefaultCurrency(currency);
     localStorage.setItem('defaultCurrency', currency);
+  };
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstall(false);
   };
 
   const handleExportData = () => {
@@ -103,6 +131,61 @@ export default function Settings() {
       </header>
 
       <div className="settings-content">
+
+        <div className="settings-section">
+          <h2>Instalează aplicația</h2>
+
+          {showInstall && (
+            <button className="btn-secondary" style={{ width: '100%', marginBottom: 12 }} onClick={handleInstall}>
+              📲 Instalează pe acest dispozitiv
+            </button>
+          )}
+
+          {isIOS && (
+            <div>
+              <button
+                className="btn-secondary"
+                style={{ width: '100%', marginBottom: 12 }}
+                onClick={() => setShowIOSSteps(prev => !prev)}
+              >
+                🍎 Instrucțiuni pentru iPhone / iPad
+              </button>
+              {showIOSSteps && (
+                <div style={{
+                  background: '#21262d',
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  fontSize: 13,
+                  color: '#c9d1d9',
+                  lineHeight: 1.8,
+                  marginBottom: 12
+                }}>
+                  <p style={{ margin: '0 0 8px', fontWeight: 600, color: '#58a6ff' }}>Cum instalezi pe iOS (Safari):</p>
+                  <p style={{ margin: '0 0 4px' }}>1. Deschide aplicația în <strong>Safari</strong></p>
+                  <p style={{ margin: '0 0 4px' }}>2. Apasă butonul <strong>Share</strong> (pătrățel cu săgeată în sus ↑)</p>
+                  <p style={{ margin: '0 0 4px' }}>3. Derulează și apasă <strong>"Adaugă la ecranul principal"</strong></p>
+                  <p style={{ margin: 0 }}>4. Apasă <strong>Adaugă</strong> ✓</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!showInstall && !isIOS && (
+            <div style={{
+              background: '#21262d',
+              borderRadius: 10,
+              padding: '14px 16px',
+              fontSize: 13,
+              color: '#8b949e',
+              lineHeight: 1.7
+            }}>
+              <p style={{ margin: '0 0 6px', fontWeight: 600, color: '#c9d1d9' }}>Cum instalezi manual:</p>
+              <p style={{ margin: '0 0 4px' }}>• <strong>Chrome Android:</strong> meniu ⋮ → "Adaugă pe ecranul principal"</p>
+              <p style={{ margin: '0 0 4px' }}>• <strong>Chrome Desktop:</strong> iconița ⊕ din bara de adresă</p>
+              <p style={{ margin: 0 }}>• <strong>Samsung Browser:</strong> meniu → "Adaugă pagina la" → Ecran principal</p>
+            </div>
+          )}
+        </div>
 
         <div className="settings-section">
           <h2>Date</h2>
