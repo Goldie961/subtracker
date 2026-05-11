@@ -1,17 +1,6 @@
 import webpush from 'web-push';
 import { Redis } from '@upstash/redis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-webpush.setVapidDetails(
-  'mailto:contact@subtracker.app',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).end();
 
@@ -19,6 +8,25 @@ export default async function handler(req, res) {
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  // Guard: verifică env vars obligatorii
+  const missingVars = ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']
+    .filter(k => !process.env[k]);
+  if (missingVars.length) {
+    return res.status(500).json({ error: 'Missing env vars', missing: missingVars });
+  }
+
+  // Inițializare la runtime (nu la module load) pentru a evita crash la deploy
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
+  webpush.setVapidDetails(
+    'mailto:contact@subtracker.app',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
 
   const keys = await redis.keys('push:*');
   if (!keys.length) return res.status(200).json({ sent: 0 });
