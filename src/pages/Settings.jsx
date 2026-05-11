@@ -12,7 +12,13 @@ export default function Settings() {
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [showIOSSteps, setShowIOSSteps] = useState(false);
-  const [notifStatus, setNotifStatus] = useState(Notification.permission);
+  const [notifStatus, setNotifStatus] = useState(() => {
+    try {
+      return typeof Notification !== 'undefined' ? Notification.permission : 'default';
+    } catch {
+      return 'default';
+    }
+  });
 
   useEffect(() => {
     const savedCurrency = localStorage.getItem('defaultCurrency') || 'RON';
