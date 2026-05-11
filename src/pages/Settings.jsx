@@ -12,6 +12,7 @@ export default function Settings() {
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [showIOSSteps, setShowIOSSteps] = useState(false);
+  const [notifStatus, setNotifStatus] = useState(Notification.permission);
 
   useEffect(() => {
     const savedCurrency = localStorage.getItem('defaultCurrency') || 'RON';
@@ -44,6 +45,26 @@ export default function Settings() {
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') setShowInstall(false);
+  };
+
+  const handleEnableNotifications = async () => {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      });
+      const subscriptions = getSubscriptions();
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub, subscriptions })
+      });
+      setNotifStatus('granted');
+    } else if (permission === 'denied') {
+      setNotifStatus('denied');
+    }
   };
 
   const handleExportData = () => {
@@ -184,6 +205,40 @@ export default function Settings() {
               <p style={{ margin: '0 0 4px' }}>• <strong>Chrome Desktop:</strong> iconița ⊕ din bara de adresă</p>
               <p style={{ margin: 0 }}>• <strong>Samsung Browser:</strong> meniu → "Adaugă pagina la" → Ecran principal</p>
             </div>
+          )}
+        </div>
+
+        <div className="settings-section">
+          <h2>Notificări</h2>
+          {notifStatus === 'granted' && (
+            <p style={{
+              color: '#3fb950',
+              fontWeight: 600,
+              fontSize: 14,
+              margin: 0
+            }}>
+              ✓ Notificările sunt active
+            </p>
+          )}
+          {notifStatus === 'denied' && (
+            <p style={{
+              color: '#f85149',
+              fontWeight: 500,
+              fontSize: 13,
+              margin: 0,
+              lineHeight: 1.6
+            }}>
+              Notificările sunt blocate în browser. Activează-le din setările browserului.
+            </p>
+          )}
+          {notifStatus === 'default' && (
+            <button
+              className="btn-secondary"
+              style={{ width: '100%' }}
+              onClick={handleEnableNotifications}
+            >
+              🔔 Activează notificările
+            </button>
           )}
         </div>
 
