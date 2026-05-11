@@ -1,7 +1,7 @@
-import webpush from 'web-push';
-import { Redis } from '@upstash/redis';
+const webpush = require('web-push');
+const { Redis } = require('@upstash/redis');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).end();
 
   const authHeader = req.headers.authorization;
@@ -87,4 +87,4 @@ export default async function handler(req, res) {
   }
 
   res.status(200).json({ sent, errors });
-}
+};

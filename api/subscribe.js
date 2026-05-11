@@ -1,18 +1,20 @@
-import webpush from 'web-push';
-import { Redis } from '@upstash/redis';
+const webpush = require('web-push');
+const { Redis } = require('@upstash/redis');
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-webpush.setVapidDetails(
-  'mailto:contact@subtracker.app',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:contact@subtracker.app',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -32,4 +34,4 @@ export default async function handler(req, res) {
   }));
 
   res.status(200).json({ ok: true });
-}
+};
