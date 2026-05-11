@@ -1,0 +1,344 @@
+/* ── Add Page ── */
+.add-page {
+  padding: 20px 16px;
+}
+
+.add-header {
+  margin-bottom: 24px;
+}
+
+.add-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+/* ── Search ── */
+.search-input {
+  width: 100%;
+  margin-bottom: 20px;
+  padding-left: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3Cpath d='M12 12l4 4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 14px center;
+}
+
+/* ── Preset Grid ── */
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 84px;
+  padding: 14px 12px;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+  text-align: left;
+}
+
+.preset-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+}
+
+.preset-card:hover {
+  transform: translateY(-2px);
+}
+
+.card-logo-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  margin-top: auto;
+}
+
+.card-price {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+}
+
+.fizice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.fizic-row {
+  border-radius: 13px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: transform var(--transition);
+}
+
+.fizic-row:hover {
+  transform: translateY(-2px);
+}
+
+.fizic-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.fizic-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fizic-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 2px;
+}
+
+.fizic-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+.search-result {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.result-add {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+  font-family: inherit;
+}
+
+/* ── Selected Preset ── */
+.selected-preset-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  animation: fadeIn 200ms ease;
+}
+
+.selected-emoji {
+  font-size: 28px;
+}
+
+.selected-name {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.change-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.change-link:hover {
+  opacity: 0.7;
+}
+
+/* ── Form ── */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 250ms ease;
+}
+
+.amount-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.amount-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Remove spinner arrows */
+.amount-input::-webkit-inner-spin-button,
+.amount-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.amount-input {
+  -moz-appearance: textfield;
+}
+
+/* ── Intent Toggle ── */
+.intent-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.intent-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.intent-btn:hover {
+  border-color: var(--text-secondary);
+}
+
+.intent-btn.active.renew {
+  background: rgba(0, 200, 150, 0.12);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.intent-btn.active.cancel {
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ── Save ── */
+.save-btn {
+  margin-top: 8px;
+}
+
+.save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Date input styling ── */
+input[type='date'] {
+  color-scheme: light;
+  color: #0d1117;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+#renewal-date-field::-webkit-datetime-edit { color: #0d1117; }
+#renewal-date-field::-webkit-calendar-picker-indicator { filter: none; }
+
+.preset-category-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 16px 0 8px 0;
+}
+
+/* ── Confirm Modal ── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+  animation: fadeIn 150ms ease;
+}
+
+.confirm-modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  animation: slideUp 200ms ease;
+}
+
+.confirm-modal h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.confirm-modal p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-actions button {
+  flex: 1;
+}

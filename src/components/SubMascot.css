@@ -1,0 +1,54 @@
+/* Float */
+@keyframes subFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Blink — pe .sub-eye */
+@keyframes subBlink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  93% { transform: scaleY(0.08); }
+}
+
+/* Glow pulse — pe cercul exterior */
+@keyframes subGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes subGlowTalking {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.sub-mascot-wrap {
+  animation: subFloat 3s ease-in-out infinite;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s ease;
+}
+
+.sub-mascot-wrap.state-sleeping {
+  opacity: 0.7;
+}
+
+.sub-mascot-svg {
+  filter: drop-shadow(0 0 12px rgba(0,200,150,0.35));
+}
+
+.sub-glow {
+  animation: subGlow 2.5s ease-in-out infinite;
+}
+
+.state-talking .sub-glow {
+  animation: subGlowTalking 1.5s ease-in-out infinite;
+}
+
+.sub-mascot-wrap:not(.state-sleeping) .sub-eye {
+  animation: subBlink 4.5s ease-in-out infinite;
+}
+
+.sub-mascot-wrap:not(.state-sleeping) .sub-eye:nth-child(2) {
+  animation-delay: 0.15s;
+}
