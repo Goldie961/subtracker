@@ -161,7 +161,7 @@ export default function Settings() {
       try {
         const data = JSON.parse(event.target.result);
         if (!Array.isArray(data)) throw new Error("Not an array");
-        
+
         const isValid = data.every(item => item.id && item.name && item.amount !== undefined && item.renewalDate);
         if (!isValid) throw new Error("Invalid fields");
 
@@ -264,21 +264,26 @@ export default function Settings() {
               }}>
                 ✓ Notificările sunt active
               </p>
-              <button
-                onClick={handleSyncSubscriptions}
-                style={{
-                  background: 'rgba(88,166,255,0.1)',
-                  border: '1px solid rgba(88,166,255,0.3)',
-                  color: '#58a6ff',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  fontWeight: 500
-                }}
-              >
-                🔄 Sincronizează
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <button
+                  onClick={handleSyncSubscriptions}
+                  style={{
+                    background: 'rgba(88,166,255,0.1)',
+                    border: '1px solid rgba(88,166,255,0.3)',
+                    color: '#58a6ff',
+                    borderRadius: 6,
+                    padding: '4px 10px',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  🔄 Sincronizează
+                </button>
+                <span style={{ fontSize: 11, color: '#484f58', marginTop: 4 }}>
+                  Sincronizare automată la fiecare modificare
+                </span>
+              </div>
               <button
                 onClick={handleDisableNotifications}
                 style={{
@@ -337,8 +342,8 @@ export default function Settings() {
               📊 CSV
             </button>
           </div>
-          <label className="btn-secondary" style={{ 
-            width: '100%', textAlign: 'center', 
+          <label className="btn-secondary" style={{
+            width: '100%', textAlign: 'center',
             cursor: 'pointer', margin: '0 0 12px 0',
             display: 'block'
           }}>

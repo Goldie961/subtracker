@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSubscriptions } from '../utils/storage';
+import { autoSync } from '../utils/storage';
 import { PRESETS } from '../data/presets';
 import {
   getDaysRemaining,
@@ -13,6 +14,14 @@ import './Dashboard.css';
 
 export default function Dashboard() {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [reminderChips, setReminderChips] = useState(() => {
+    const saved = localStorage.getItem('reminderDays');
+    return saved ? JSON.parse(saved) : [3, 1];
+  });
+  const [notifActive, setNotifActive] = useState(() => {
+    try { return Notification.permission === 'granted'; } catch { return false; }
+  });
 
   const getLogoUrl = (sub) => 
     sub.logoUrl || PRESETS.find(p => p.name === sub.name)?.logoUrl || null;
@@ -28,6 +37,7 @@ export default function Dashboard() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
   const navigate = useNavigate();
+  const syncTimeoutRef = useRef(null);
 
   const loadData = () => {
     setSubscriptions(getSubscriptions());
@@ -64,6 +74,32 @@ export default function Dashboard() {
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') setShowInstall(false);
   };
+
+  function handleChipToggle(day) {
+    setReminderChips(prev => {
+      const next = prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day];
+      localStorage.setItem('reminderDays', JSON.stringify(next));
+      // debounced sync to Redis
+      clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(async () => {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const pushSub = await registration.pushManager.getSubscription();
+          if (!pushSub) return;
+          await fetch('/api/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subscription: pushSub,
+              subscriptions: getSubscriptions(),
+              reminderDays: next
+            })
+          });
+        } catch {}
+      }, 800);
+      return next;
+    });
+  }
 
   const activeSubs = subscriptions.filter(sub => sub.status !== 'cancelled');
   const now = Date.now();
@@ -112,13 +148,19 @@ export default function Dashboard() {
     return minA - minB;
   });
 
+  const nextNotif = activeSubs
+    .filter(s => s.renewalDate)
+    .map(s => ({ ...s, daysLeft: getDaysRemaining(s.renewalDate) }))
+    .filter(s => s.daysLeft >= 0 && reminderChips.includes(s.daysLeft))
+    .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
+
   if (activeSubs.length === 0) {
     return (
       <div className="dashboard fade-in">
         <header className="dash-header">
           <h1 className="dash-greeting">Salut 👋</h1>
           <div className="dash-header-actions">
-            <button className="btn-icon" id="btn-notifications">🔔</button>
+            <button className="btn-icon" id="btn-notifications" onClick={() => { setShowNotifPanel(true); autoSync(); }}>🔔</button>
             <button className="btn-icon" id="btn-settings" onClick={() => navigate('/settings')}>⚙️</button>
           </div>
         </header>
@@ -143,7 +185,7 @@ export default function Dashboard() {
       <header className="dash-header">
         <h1 className="dash-greeting">Salut 👋</h1>
         <div className="dash-header-actions">
-          <button className="btn-icon" id="btn-notifications">🔔</button>
+          <button className="btn-icon" id="btn-notifications" onClick={() => { setShowNotifPanel(true); autoSync(); }}>🔔</button>
           <button className="btn-icon" id="btn-statistics" onClick={() => navigate('/statistics')}>📊</button>
           <button className="btn-icon" id="btn-settings" onClick={() => navigate('/settings')}>⚙️</button>
         </div>
@@ -380,6 +422,80 @@ export default function Dashboard() {
         </button>
       </div>
 
+
+      {showNotifPanel && (
+        <div
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:1000, display:'flex', alignItems:'flex-end' }}
+          onClick={() => setShowNotifPanel(false)}
+        >
+          <div
+            style={{ background:'#0d1117', borderRadius:'16px 16px 0 0', width:'100%', maxHeight:'80vh', overflowY:'auto', padding:'20px 16px 32px' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+              <span style={{ fontWeight:500, fontSize:16, color:'#c9d1d9' }}>Notificări</span>
+              <span style={{ fontSize:13, fontWeight:500, color: notifActive ? '#3fb950' : '#8b949e' }}>
+                {notifActive ? '● Activ' : '● Inactiv'}
+              </span>
+            </div>
+
+            <p style={{ fontSize:13, color:'#8b949e', marginBottom:10 }}>Anunță-mă înainte cu:</p>
+            <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
+              {[7, 3, 1, 0].map(day => (
+                <button
+                  key={day}
+                  onClick={() => handleChipToggle(day)}
+                  style={{
+                    padding:'6px 14px',
+                    borderRadius:20,
+                    border: reminderChips.includes(day) ? '1px solid #58a6ff' : '1px solid #30363d',
+                    background: reminderChips.includes(day) ? 'rgba(88,166,255,0.15)' : 'transparent',
+                    color: reminderChips.includes(day) ? '#58a6ff' : '#8b949e',
+                    fontSize:13,
+                    cursor:'pointer',
+                    fontWeight: reminderChips.includes(day) ? 500 : 400
+                  }}
+                >
+                  {day === 0 ? 'În ziua plății' : day === 1 ? '1 zi' : `${day} zile`}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ borderTop:'1px solid #21262d', paddingTop:16, marginBottom:16 }}>
+              <p style={{ fontSize:13, color:'#8b949e', marginBottom:10 }}>Abonamente active:</p>
+              {activeSubs
+                .filter(s => s.renewalDate)
+                .map(s => ({ ...s, daysLeft: getDaysRemaining(s.renewalDate) }))
+                .sort((a, b) => a.daysLeft - b.daysLeft)
+                .map(s => (
+                  <div key={s.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #21262d' }}>
+                    <span style={{ fontSize:14, color:'#c9d1d9' }}>{s.logo} {s.name}</span>
+                    <span style={{ fontSize:12, color:'#8b949e' }}>{formatDate(s.renewalDate)}</span>
+                    <span style={{
+                      fontSize:12,
+                      fontWeight:500,
+                      color: s.daysLeft <= 3 ? '#f85149' : s.daysLeft <= 7 ? '#d29922' : '#3fb950'
+                    }}>
+                      {s.daysLeft <= 0 ? 'Azi' : s.daysLeft === 1 ? 'Mâine' : `${s.daysLeft} zile`}
+                    </span>
+                  </div>
+                ))
+              }
+            </div>
+
+            {nextNotif && (
+              <div style={{ background:'#161b22', borderRadius:10, padding:'10px 14px', marginBottom:16 }}>
+                <p style={{ fontSize:12, color:'#8b949e', marginBottom:4 }}>Următoarea notificare:</p>
+                <p style={{ fontSize:14, color:'#c9d1d9', fontWeight:500 }}>
+                  {nextNotif.name} — {nextNotif.daysLeft === 0 ? 'azi' : nextNotif.daysLeft === 1 ? 'mâine' : `în ${nextNotif.daysLeft} zile`}
+                </p>
+              </div>
+            )}
+
+            <p style={{ fontSize:11, color:'#484f58', textAlign:'center' }}>Sincronizare automată la deschidere</p>
+          </div>
+        </div>
+      )}
 
     </div>
   );

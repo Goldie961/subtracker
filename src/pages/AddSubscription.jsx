@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PRESETS } from '../data/presets';
 import { addSubscription, getSubscriptionById, updateSubscription } from '../utils/storage';
+import { autoSync } from '../utils/storage';
 import { generateId } from '../utils/helpers';
 import ServiceLogo from '../components/ServiceLogo';
 import './AddSubscription.css';
@@ -140,6 +141,7 @@ export default function AddSubscription() {
       addSubscription(sub);
     }
 
+    autoSync();
     navigate('/');
   }
 

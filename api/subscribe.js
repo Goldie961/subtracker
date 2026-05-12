@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { subscription, subscriptions } = req.body;
+  const { subscription, subscriptions, reminderDays } = req.body;
   if (!subscription) return res.status(400).json({ error: 'No subscription' });
 
   const endpointKey = Buffer.from(subscription.endpoint).toString('base64').slice(0, 60);
@@ -40,6 +40,7 @@ export default async function handler(req, res) {
   await redis.set(key, JSON.stringify({
     subscription,
     subscriptions: subscriptions || [],
+    reminderDays: reminderDays || [3, 1],
     updatedAt: new Date().toISOString()
   }));
 

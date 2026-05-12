@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSubscriptionById, deleteSubscription, updateSubscription } from '../utils/storage';
+import { getSubscriptionById, deleteSubscription, updateSubscription, autoSync } from '../utils/storage';
 import { getDaysRemaining, getUrgencyClass, formatCurrency, formatDate } from '../utils/helpers';
 import { PRESETS } from '../data/presets';
 import ServiceLogo from '../components/ServiceLogo';
@@ -39,11 +39,13 @@ export default function SubscriptionDetail() {
 
   function handleDelete() {
     deleteSubscription(id);
+    autoSync();
     navigate('/');
   }
 
   function handleMarkCancelled() {
     updateSubscription(id, { status: 'cancelled' });
+    autoSync();
     if (!isUtility) {
       const savedStr = localStorage.getItem('savedAmounts');
       const saved = savedStr ? JSON.parse(savedStr) : {};
@@ -68,6 +70,7 @@ export default function SubscriptionDetail() {
     const formattedDate = `${yyyy}-${mm}-${dd}`;
 
     updateSubscription(id, { renewalDate: formattedDate });
+    autoSync();
     setShowRenewSuccess(true);
     setTimeout(() => navigate('/'), 1500);
   }
