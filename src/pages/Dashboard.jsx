@@ -20,6 +20,8 @@ export default function Dashboard() {
     return saved ? JSON.parse(saved) : [3, 1];
   });
   const [notifActive, setNotifActive] = useState(() => {
+    const stored = localStorage.getItem('notifActive');
+    if (stored === 'false') return false;
     try { return Notification.permission === 'granted'; } catch { return false; }
   });
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -121,6 +123,7 @@ export default function Dashboard() {
         });
       }
       setNotifActive(false);
+      localStorage.setItem('notifActive', 'false');
     } catch (err) {
       console.error('Error disabling notifications:', err);
     }

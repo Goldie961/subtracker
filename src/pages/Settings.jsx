@@ -13,11 +13,11 @@ export default function Settings() {
   const [isAndroid, setIsAndroid] = useState(false);
   const [showIOSSteps, setShowIOSSteps] = useState(false);
   const [notifStatus, setNotifStatus] = useState(() => {
+    const stored = localStorage.getItem('notifActive');
+    if (stored === 'false') return 'default';
     try {
       return typeof Notification !== 'undefined' ? Notification.permission : 'default';
-    } catch {
-      return 'default';
-    }
+    } catch { return 'default'; }
   });
 
   useEffect(() => {
@@ -68,8 +68,28 @@ export default function Settings() {
         body: JSON.stringify({ subscription: sub, subscriptions })
       });
       setNotifStatus('granted');
+      localStorage.setItem('notifActive', 'true');
     } else if (permission === 'denied') {
       setNotifStatus('denied');
+    }
+  };
+
+  const handleDisableNotificationsSettings = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      if (sub) {
+        await sub.unsubscribe();
+        await fetch('/api/subscribe', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+      }
+      localStorage.setItem('notifActive', 'false');
+      setNotifStatus('default');
+    } catch (err) {
+      console.error('Error disabling notifications:', err);
     }
   };
 
@@ -218,7 +238,7 @@ export default function Settings() {
         <div className="settings-section">
           <h2>Notificări</h2>
           {notifStatus === 'granted' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <p style={{
                 color: '#3fb950',
                 fontWeight: 600,
@@ -227,6 +247,23 @@ export default function Settings() {
               }}>
                 ✓ Notificările sunt active
               </p>
+              <button
+                onClick={handleDisableNotificationsSettings}
+                style={{
+                  background: 'rgba(248,81,73,0.1)',
+                  border: '1px solid rgba(248,81,73,0.3)',
+                  color: '#f85149',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  marginTop: 8,
+                  alignSelf: 'flex-start'
+                }}
+              >
+                🔕 Dezactivează
+              </button>
             </div>
           )}
           {notifStatus === 'denied' && (
