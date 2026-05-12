@@ -425,35 +425,104 @@ export default function Dashboard() {
 
       {showNotifPanel && (
         <div
-          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:1000, display:'flex', alignItems:'flex-end' }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'flex-end',
+          }}
           onClick={() => setShowNotifPanel(false)}
         >
           <div
-            style={{ background:'#0d1117', borderRadius:'16px 16px 0 0', width:'100%', maxHeight:'80vh', overflowY:'auto', padding:'20px 16px 32px' }}
+            style={{
+              background: '#0d1117',
+              borderRadius: '20px 20px 0 0',
+              width: '100%',
+              maxHeight: '82vh',
+              overflowY: 'auto',
+              padding: '12px 16px 36px',
+              boxShadow: '0 -4px 32px rgba(0,0,0,0.5)',
+              animation: 'notifSlideUp 0.28s cubic-bezier(0.32,0.72,0,1) both',
+            }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-              <span style={{ fontWeight:500, fontSize:16, color:'#c9d1d9' }}>Notificări</span>
-              <span style={{ fontSize:13, fontWeight:500, color: notifActive ? '#3fb950' : '#8b949e' }}>
-                {notifActive ? '● Activ' : '● Inactiv'}
+            <style>{`
+              @keyframes notifSlideUp {
+                from { transform: translateY(100%); }
+                to   { transform: translateY(0); }
+              }
+            `}</style>
+
+            {/* Handle bar */}
+            <div style={{
+              width: 36,
+              height: 4,
+              background: '#30363d',
+              borderRadius: 2,
+              margin: '0 auto 12px',
+            }} />
+
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              paddingBottom: 14,
+              borderBottom: '1px solid #21262d',
+              marginBottom: 16,
+            }}>
+              <span style={{ fontWeight: 700, fontSize: 17, color: '#c9d1d9', flex: 1 }}>Notificări</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '3px 10px',
+                borderRadius: 20,
+                background: notifActive ? 'rgba(63,185,80,0.12)' : 'rgba(139,148,158,0.10)',
+                border: notifActive ? '1px solid rgba(63,185,80,0.3)' : '1px solid rgba(139,148,158,0.2)',
+                color: notifActive ? '#3fb950' : '#8b949e',
+                fontSize: 12,
+                fontWeight: 600,
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: notifActive ? '#3fb950' : '#8b949e', display: 'inline-block' }} />
+                {notifActive ? 'Activ' : 'Inactiv'}
               </span>
             </div>
 
-            <p style={{ fontSize:13, color:'#8b949e', marginBottom:10 }}>Anunță-mă înainte cu:</p>
-            <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
+            {/* Chips section */}
+            <p style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.8px',
+              color: '#484f58',
+              textTransform: 'uppercase',
+              marginBottom: 12,
+            }}>
+              Anunță-mă înainte cu:
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
               {[7, 3, 1, 0].map(day => (
                 <button
                   key={day}
                   onClick={() => handleChipToggle(day)}
                   style={{
-                    padding:'6px 14px',
-                    borderRadius:20,
-                    border: reminderChips.includes(day) ? '1px solid #58a6ff' : '1px solid #30363d',
-                    background: reminderChips.includes(day) ? 'rgba(88,166,255,0.15)' : 'transparent',
+                    padding: '8px 18px',
+                    borderRadius: 20,
+                    border: reminderChips.includes(day)
+                      ? '1px solid #58a6ff'
+                      : '1px solid #30363d',
+                    background: reminderChips.includes(day)
+                      ? 'rgba(88,166,255,0.18)'
+                      : '#161b22',
                     color: reminderChips.includes(day) ? '#58a6ff' : '#8b949e',
-                    fontSize:13,
-                    cursor:'pointer',
-                    fontWeight: reminderChips.includes(day) ? 500 : 400
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    fontWeight: reminderChips.includes(day) ? 600 : 400,
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   {day === 0 ? 'În ziua plății' : day === 1 ? '1 zi' : `${day} zile`}
@@ -461,38 +530,79 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div style={{ borderTop:'1px solid #21262d', paddingTop:16, marginBottom:16 }}>
-              <p style={{ fontSize:13, color:'#8b949e', marginBottom:10 }}>Abonamente active:</p>
+            {/* Active subscriptions section */}
+            <p style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.8px',
+              color: '#484f58',
+              textTransform: 'uppercase',
+              marginBottom: 12,
+            }}>
+              Abonamente active:
+            </p>
+            <div style={{ marginBottom: 16 }}>
               {activeSubs
                 .filter(s => s.renewalDate)
                 .map(s => ({ ...s, daysLeft: getDaysRemaining(s.renewalDate) }))
                 .sort((a, b) => a.daysLeft - b.daysLeft)
-                .map(s => (
-                  <div key={s.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #21262d' }}>
-                    <span style={{ fontSize:14, color:'#c9d1d9' }}>{s.logo} {s.name}</span>
-                    <span style={{ fontSize:12, color:'#8b949e' }}>{formatDate(s.renewalDate)}</span>
-                    <span style={{
-                      fontSize:12,
-                      fontWeight:500,
-                      color: s.daysLeft <= 3 ? '#f85149' : s.daysLeft <= 7 ? '#d29922' : '#3fb950'
+                .map(s => {
+                  const daysColor = s.daysLeft <= 1 ? '#f85149'
+                    : s.daysLeft <= 3 ? '#f0883e'
+                    : s.daysLeft <= 7 ? '#d29922'
+                    : '#3fb950';
+                  const daysLabel = s.daysLeft <= 0 ? 'Azi'
+                    : s.daysLeft === 1 ? 'Mâine'
+                    : `${s.daysLeft}z`;
+                  return (
+                    <div key={s.id} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '8px 0',
+                      borderBottom: '1px solid #21262d',
+                      gap: 8,
                     }}>
-                      {s.daysLeft <= 0 ? 'Azi' : s.daysLeft === 1 ? 'Mâine' : `${s.daysLeft} zile`}
-                    </span>
-                  </div>
-                ))
+                      <span style={{ fontSize: 18 }}>{s.logo}</span>
+                      <span style={{ flex: 1, color: '#c9d1d9', fontSize: 14 }}>{s.name}</span>
+                      <span style={{ fontSize: 12, color: '#484f58' }}>{formatDate(s.renewalDate)}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: daysColor, minWidth: 42, textAlign: 'right' }}>
+                        {daysLabel}
+                      </span>
+                    </div>
+                  );
+                })
               }
             </div>
 
+            {/* Next notification card */}
             {nextNotif && (
-              <div style={{ background:'#161b22', borderRadius:10, padding:'10px 14px', marginBottom:16 }}>
-                <p style={{ fontSize:12, color:'#8b949e', marginBottom:4 }}>Următoarea notificare:</p>
-                <p style={{ fontSize:14, color:'#c9d1d9', fontWeight:500 }}>
+              <div style={{
+                background: '#161b22',
+                border: '1px solid #21262d',
+                borderRadius: 10,
+                padding: '12px 14px',
+                marginBottom: 8,
+              }}>
+                <p style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.8px',
+                  color: '#484f58',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}>
+                  Următoarea notificare:
+                </p>
+                <p style={{ fontSize: 14, color: '#c9d1d9', fontWeight: 700, margin: 0 }}>
                   {nextNotif.name} — {nextNotif.daysLeft === 0 ? 'azi' : nextNotif.daysLeft === 1 ? 'mâine' : `în ${nextNotif.daysLeft} zile`}
                 </p>
               </div>
             )}
 
-            <p style={{ fontSize:11, color:'#484f58', textAlign:'center' }}>Sincronizare automată la deschidere</p>
+            {/* Footer */}
+            <p style={{ fontSize: 11, color: '#484f58', textAlign: 'center', marginTop: 8 }}>
+              Sincronizare automată la deschidere
+            </p>
           </div>
         </div>
       )}
