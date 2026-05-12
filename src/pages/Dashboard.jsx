@@ -22,6 +22,13 @@ export default function Dashboard() {
   const [notifActive, setNotifActive] = useState(() => {
     try { return Notification.permission === 'granted'; } catch { return false; }
   });
+  const [openAccordion, setOpenAccordion] = useState(null);
+  const [remindOnDay, setRemindOnDay] = useState(() => {
+    return localStorage.getItem('remindOnDay') === 'true';
+  });
+  const [remindAfterRenew, setRemindAfterRenew] = useState(() => {
+    return localStorage.getItem('remindAfterRenew') === 'true';
+  });
 
   const getLogoUrl = (sub) => 
     sub.logoUrl || PRESETS.find(p => p.name === sub.name)?.logoUrl || null;
@@ -100,6 +107,24 @@ export default function Dashboard() {
       return next;
     });
   }
+
+  const handleDisableNotifications = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      if (sub) {
+        await sub.unsubscribe();
+        await fetch('/api/subscribe', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+      }
+      setNotifActive(false);
+    } catch (err) {
+      console.error('Error disabling notifications:', err);
+    }
+  };
 
   const activeSubs = subscriptions.filter(sub => sub.status !== 'cancelled');
   const now = Date.now();
@@ -491,6 +516,23 @@ export default function Dashboard() {
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: notifActive ? '#3fb950' : '#8b949e', display: 'inline-block' }} />
                 {notifActive ? 'Activ' : 'Inactiv'}
               </span>
+              {notifActive && (
+                <button
+                  onClick={handleDisableNotifications}
+                  style={{
+                    background: 'rgba(248,81,73,0.08)',
+                    border: '1px solid rgba(248,81,73,0.25)',
+                    color: '#f85149',
+                    borderRadius: 6,
+                    padding: '4px 10px',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  Dezactivează
+                </button>
+              )}
             </div>
 
             {/* Chips section */}
@@ -530,7 +572,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Active subscriptions section */}
+            {/* Scheduled notifications list */}
             <p style={{
               fontSize: 11,
               fontWeight: 600,
@@ -539,70 +581,212 @@ export default function Dashboard() {
               textTransform: 'uppercase',
               marginBottom: 12,
             }}>
-              Abonamente active:
+              Notificări programate:
             </p>
             <div style={{ marginBottom: 16 }}>
-              {activeSubs
-                .filter(s => s.renewalDate)
-                .map(s => ({ ...s, daysLeft: getDaysRemaining(s.renewalDate) }))
-                .sort((a, b) => a.daysLeft - b.daysLeft)
-                .map(s => {
-                  const daysColor = s.daysLeft <= 1 ? '#f85149'
-                    : s.daysLeft <= 3 ? '#f0883e'
-                    : s.daysLeft <= 7 ? '#d29922'
-                    : '#3fb950';
-                  const daysLabel = s.daysLeft <= 0 ? 'Azi'
-                    : s.daysLeft === 1 ? 'Mâine'
-                    : `${s.daysLeft}z`;
+              {(() => {
+                const maxChip = reminderChips.length > 0 ? Math.max(...reminderChips) : 0;
+                const notifSubs = activeSubs
+                  .filter(s => s.renewalDate)
+                  .map(s => ({ ...s, daysLeft: getDaysRemaining(s.renewalDate) }))
+                  .filter(s => s.daysLeft <= maxChip)
+                  .sort((a, b) => a.daysLeft - b.daysLeft);
+
+                if (notifSubs.length === 0) {
                   return (
-                    <div key={s.id} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '8px 0',
-                      borderBottom: '1px solid #21262d',
-                      gap: 8,
-                    }}>
-                      <span style={{ fontSize: 18 }}>{s.logo}</span>
-                      <span style={{ flex: 1, color: '#c9d1d9', fontSize: 14 }}>{s.name}</span>
-                      <span style={{ fontSize: 12, color: '#484f58' }}>{formatDate(s.renewalDate)}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: daysColor, minWidth: 42, textAlign: 'right' }}>
-                        {daysLabel}
-                      </span>
+                    <p style={{ fontSize: 12, color: '#484f58', margin: 0 }}>
+                      Nicio notificare programată
+                    </p>
+                  );
+                }
+
+                return notifSubs.map(sub => {
+                  const dl = sub.daysLeft;
+                  let badgeBg, badgeBorder, badgeColor, badgeLabel;
+                  if (dl <= 0) {
+                    badgeBg = 'rgba(248,81,73,0.12)'; badgeBorder = 'rgba(248,81,73,0.3)'; badgeColor = '#f85149'; badgeLabel = 'Expirat';
+                  } else if (dl === 1) {
+                    badgeBg = 'rgba(240,165,0,0.12)'; badgeBorder = 'rgba(240,165,0,0.3)'; badgeColor = '#f0a500'; badgeLabel = 'Mâine';
+                  } else if (dl <= 2) {
+                    badgeBg = 'rgba(240,165,0,0.12)'; badgeBorder = 'rgba(240,165,0,0.3)'; badgeColor = '#f0a500'; badgeLabel = `${dl} zile`;
+                  } else {
+                    badgeBg = 'rgba(63,185,80,0.12)'; badgeBorder = 'rgba(63,185,80,0.3)'; badgeColor = '#3fb950';
+                    badgeLabel = dl === 0 ? 'Azi' : `${dl} zile`;
+                  }
+
+                  const isOpen = openAccordion === sub.id;
+
+                  return (
+                    <div key={sub.id}>
+                      {/* Row */}
+                      <div
+                        onClick={() => setOpenAccordion(prev => prev === sub.id ? null : sub.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          padding: '10px 0',
+                          borderBottom: '1px solid #21262d',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: 18, flexShrink: 0 }}>
+                          <ServiceLogo logoUrl={getLogoUrl(sub)} emoji={sub.logo} name={sub.name} size={22} />
+                        </span>
+                        <span style={{ flex: 1, color: '#c9d1d9', fontSize: 14, fontWeight: 600 }}>{sub.name}</span>
+                        <span style={{ fontSize: 11, color: '#484f58' }}>{formatDate(sub.renewalDate)}</span>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background: badgeBg,
+                          border: `1px solid ${badgeBorder}`,
+                          color: badgeColor,
+                        }}>
+                          {badgeLabel}
+                        </span>
+                      </div>
+
+                      {/* Accordion */}
+                      <div style={{
+                        overflow: 'hidden',
+                        transition: 'max-height 0.2s ease',
+                        maxHeight: isOpen ? '120px' : '0px',
+                      }}>
+                        <div style={{
+                          background: '#161b22',
+                          borderRadius: 10,
+                          padding: '10px 12px',
+                          margin: '2px 0 6px',
+                          border: '1px solid #21262d',
+                        }}>
+                          <p style={{ fontSize: 12, color: '#8b949e', marginBottom: 8, marginTop: 0 }}>
+                            Vrei să anulezi notificarea anticipat?
+                          </p>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              onClick={() => { setShowNotifPanel(false); navigate(`/subscription/${sub.id}`); }}
+                              style={{
+                                flex: 1,
+                                padding: '7px 0',
+                                borderRadius: 8,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                background: 'rgba(63,185,80,0.12)',
+                                border: '1px solid rgba(63,185,80,0.3)',
+                                color: '#3fb950',
+                              }}
+                            >
+                              ✓ Da, am înțeles
+                            </button>
+                            <button
+                              onClick={() => setOpenAccordion(null)}
+                              style={{
+                                flex: 1,
+                                padding: '7px 0',
+                                borderRadius: 8,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                background: 'rgba(248,81,73,0.08)',
+                                border: '1px solid rgba(248,81,73,0.25)',
+                                color: '#f85149',
+                              }}
+                            >
+                              ✗ Nu
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   );
-                })
-              }
+                });
+              })()}
             </div>
 
-            {/* Next notification card */}
-            {nextNotif && (
+            {/* Global toggles */}
+            <div style={{ borderTop: '1px solid #21262d', paddingTop: 4 }}>
+              {/* Toggle: Reamintește în ziua reînnoirii */}
               <div style={{
-                background: '#161b22',
-                border: '1px solid #21262d',
-                borderRadius: 10,
-                padding: '12px 14px',
-                marginBottom: 8,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 0',
+                borderBottom: '1px solid #21262d',
               }}>
-                <p style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: '0.8px',
-                  color: '#484f58',
-                  textTransform: 'uppercase',
-                  marginBottom: 6,
-                }}>
-                  Următoarea notificare:
-                </p>
-                <p style={{ fontSize: 14, color: '#c9d1d9', fontWeight: 700, margin: 0 }}>
-                  {nextNotif.name} — {nextNotif.daysLeft === 0 ? 'azi' : nextNotif.daysLeft === 1 ? 'mâine' : `în ${nextNotif.daysLeft} zile`}
-                </p>
+                <span style={{ fontSize: 13, color: '#c9d1d9' }}>Reamintește în ziua reînnoirii</span>
+                <div
+                  onClick={() => {
+                    const val = !remindOnDay;
+                    setRemindOnDay(val);
+                    localStorage.setItem('remindOnDay', val);
+                  }}
+                  style={{
+                    position: 'relative',
+                    width: 38,
+                    height: 20,
+                    borderRadius: 10,
+                    background: remindOnDay ? '#238636' : '#30363d',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: remindOnDay ? 20 : 2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#fff',
+                    transition: 'left 0.2s ease',
+                  }} />
+                </div>
               </div>
-            )}
 
-            {/* Footer */}
-            <p style={{ fontSize: 11, color: '#484f58', textAlign: 'center', marginTop: 8 }}>
-              Sincronizare automată la deschidere
-            </p>
+              {/* Toggle: Notificare după reînnoire */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 0',
+                borderBottom: '1px solid #21262d',
+              }}>
+                <span style={{ fontSize: 13, color: '#c9d1d9' }}>Notificare după reînnoire</span>
+                <div
+                  onClick={() => {
+                    const val = !remindAfterRenew;
+                    setRemindAfterRenew(val);
+                    localStorage.setItem('remindAfterRenew', val);
+                  }}
+                  style={{
+                    position: 'relative',
+                    width: 38,
+                    height: 20,
+                    borderRadius: 10,
+                    background: remindAfterRenew ? '#238636' : '#30363d',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: remindAfterRenew ? 20 : 2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#fff',
+                    transition: 'left 0.2s ease',
+                  }} />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
