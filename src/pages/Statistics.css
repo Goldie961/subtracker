@@ -1,134 +1,279 @@
-.statistics-page {
-  padding: 24px 20px;
-  max-width: 600px;
-  margin: 0 auto;
+/* ============================================================
+   Statistics — Subscription Health Dashboard
+   Dark, minimal, glassmorphism. Zero solid borders.
+   ============================================================ */
+
+.stats-page {
   min-height: 100vh;
+  background: #0d1117;
   display: flex;
   flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.statistics-header {
+/* ── Header ─────────────────────────────────────────────── */
+.stats-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 12px;
+  padding: 20px 20px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0d1117;
 }
 
-.statistics-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #c9d1d9;
+.stats-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.stats-back-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.stats-back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.stats-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+  margin-left: auto;
+  margin-right: auto;
+  padding-right: 44px; /* balance the back button width */
+}
+
+/* ── Content wrapper ─────────────────────────────────────── */
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 20px 48px;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── Glass card base ─────────────────────────────────────── */
+.stats-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.4);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Section label (uppercase micro text) ────────────────── */
+.stats-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0 0 10px;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.stats-empty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
   margin: 0;
 }
 
-.statistics-content {
-  flex: 1;
+/* ── Hero panel ──────────────────────────────────────────── */
+.stats-hero {
+  padding: 28px 24px;
 }
 
-.statistics-section {
-  background-color: #161b22;
-  border-radius: 16px;
+.stats-hero-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stats-hero-amount {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: #ffffff;
+  line-height: 1.05;
+}
+
+.stats-hero-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 4px;
+}
+
+.stats-hero-annual {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
+  margin-top: 2px;
+}
+
+/* ── Quick Insights row (2 cards side-by-side) ───────────── */
+.stats-insights-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stats-insight-card {
   padding: 20px;
-  margin-bottom: 24px;
-  border: 1px solid #30363d;
 }
 
-.statistics-section h2 {
-  font-size: 16px;
+.stats-insight-name {
+  font-size: 15px;
   font-weight: 600;
-  color: #8b949e;
-  margin: 0 0 16px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.statistics-display {
-  background-color: #21262d;
-  border-radius: 12px;
-  padding: 16px 20px;
-}
-
-.statistics-row {
+.stats-insight-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 3px;
+  flex-wrap: wrap;
 }
 
-.statistics-amount {
-  font-size: 28px;
-  font-weight: 700;
-  color: #c9d1d9;
-}
-
-.statistics-label {
-  font-size: 14px;
-  color: #8b949e;
-}
-
-.statistics-divider {
-  height: 1px;
-  background-color: #30363d;
-  margin: 12px 0;
-}
-
-.statistics-count {
-  margin: 0;
-  font-size: 13px;
-  color: #8b949e;
-}
-
-.statistics-empty {
-  margin: 0;
-  font-size: 14px;
-  color: #8b949e;
-  text-align: center;
-}
-
-.statistics-due-text {
-  margin: 0;
-  font-size: 16px;
-  color: #c9d1d9;
-  text-align: center;
-  font-weight: 500;
-}
-
-.cancelled-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cancelled-item {
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #30363d;
-}
-
-.cancelled-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.cancelled-item-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.cancelled-name {
-  font-weight: 600;
-  color: #c9d1d9;
-}
-
-.cancelled-amount {
-  font-weight: 600;
-  color: #8b949e;
-}
-
-.cancelled-item-sub {
+.stats-insight-cycle {
   font-size: 12px;
-  color: #8b949e;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.stats-insight-savings {
+  color: #6ee7b7;
+}
+
+/* ── Timeline ────────────────────────────────────────────── */
+.stats-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.stats-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stats-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.stats-timeline-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-timeline-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  flex-shrink: 0;
+}
+
+.stats-timeline-label {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 60px;
+  text-align: right;
+  opacity: 0.9;
+}
+
+/* ── Savings card ────────────────────────────────────────── */
+.stats-savings-card {
+  background: rgba(110, 231, 183, 0.05);
+  box-shadow:
+    0 0 0 1px rgba(110, 231, 183, 0.08),
+    0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.stats-savings-amount {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #6ee7b7;
+  line-height: 1.1;
+}
+
+.stats-savings-desc {
+  font-size: 13px;
+  color: rgba(110, 231, 183, 0.45);
+  margin: 2px 0 0;
+}
+
+/* ── Cancelled list ──────────────────────────────────────── */
+.stats-cancelled-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.stats-cancelled-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stats-cancelled-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.stats-cancelled-saving {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .stats-hero-amount {
+    font-size: 38px;
+  }
+
+  .stats-insights-row {
+    grid-template-columns: 1fr;
+  }
 }
